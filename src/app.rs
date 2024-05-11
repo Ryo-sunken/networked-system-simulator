@@ -1,3 +1,4 @@
+use crate::state::State;
 use winit::{
     error::EventLoopError,
     event::*,
@@ -11,6 +12,7 @@ pub struct Application {
     rt: tokio::runtime::Runtime,
     event_loop: EventLoop<()>,
     window: Window,
+    state: State,
 }
 
 impl Application {
@@ -18,11 +20,13 @@ impl Application {
         let rt = tokio::runtime::Runtime::new().unwrap();
         let event_loop = EventLoopBuilder::new().build().unwrap();
         let window = Window::new(&event_loop).unwrap();
+        let state = rt.block_on(State::new(&window));
 
         Self {
             rt,
             event_loop,
             window,
+            state,
         }
     }
 
@@ -33,13 +37,15 @@ impl Application {
                     match event {
                         WindowEvent::CloseRequested
                         | WindowEvent::KeyboardInput {
-                            event: KeyEvent {
-                                state: ElementState::Pressed,
-                                physical_key: PhysicalKey::Code(KeyCode::Escape),
-                                ..
-                            },
+                            event:
+                                KeyEvent {
+                                    state: ElementState::Pressed,
+                                    physical_key: PhysicalKey::Code(KeyCode::Escape),
+                                    ..
+                                },
                             ..
                         } => elwt.exit(),
+                        WindowEvent::RedrawRequested => self.state.render(),
                         _ => (),
                     }
                 }
