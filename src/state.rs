@@ -1,5 +1,7 @@
 use winit::{event::WindowEvent, window::Window};
 
+use crate::sprite::SpritePipeline;
+
 pub struct State {
     surface: wgpu::Surface,
     device: wgpu::Device,
@@ -95,6 +97,8 @@ impl State {
             .texture
             .create_view(&wgpu::TextureViewDescriptor::default());
 
+        let pipeline = SpritePipeline::new(&self.device, &self.queue, output.texture.format());
+
         {
             let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                 label: Some("render_pass"),
@@ -110,6 +114,8 @@ impl State {
                 timestamp_writes: None,
                 occlusion_query_set: None,
             });
+
+            pipeline.draw(&mut render_pass);
         }
 
         self.queue.submit(std::iter::once(encoder.finish()));
