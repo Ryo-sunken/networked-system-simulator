@@ -1,4 +1,5 @@
 mod app;
+mod sprite;
 mod state;
 mod texture;
 
